@@ -5,7 +5,7 @@ volumes:
 
 configs:
   ddclientconfig:
-    external: true
+    file: ./configs/ddclient.conf
 
 services:
   ddclient:
@@ -13,9 +13,9 @@ services:
     volumes:
       - ddclient-store:/config
     environment:
-      TZ: ${TZ}
-      PUID: ${PUID}
-      PGID: ${PGID}
+      TZ: ${TZ?ENVVAR TZ not set}
+      PUID: ${PUID?ENVVAR PUID not set}
+      PGID: ${PGID?ENVVAR PGID not set}
     configs:
       - source: ddclientconfig
         target: /config/ddclient.conf
