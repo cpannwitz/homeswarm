@@ -1,0 +1,86 @@
+# global scrape timing config
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 30s # By default, scrape targets every 15 seconds.
+  # scrape_timeout is set to the global default (10s).
+
+  # Attach these labels to any time series or alerts when communicating with
+  # external systems (federation, remote storage, Alertmanager).
+  external_labels:
+    monitor: 'prometheus'
+
+# Load and evaluate rules in this file every 'evaluation_interval' seconds.
+rule_files:
+  - 'blackbox.rules.yml'
+  - 'swarmnode.rules.yml'
+  - 'swarmtask.rules.yml'
+
+# alerting by rules
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - 'alertmanager:9093'
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # The job name is added as a label `job=<job_name>` to any timeseries scraped from this config.
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['prometheus:9090']
+
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8080']
+
+  # Create a job for Docker daemons.
+  - job_name: 'docker'
+    dockerswarm_sd_configs:
+      # - host: unix:///var/run/docker.sock # default for docker
+      # Custom docker daemon endpoint, provided by docker-socket-proxy, see socketproxy.stack.yml
+      - host: tcp://socketproxy:2375
+        role: nodes
+    relabel_configs:
+      # Fetch metrics on port 9323.
+      - source_labels: [__meta_dockerswarm_node_address]
+        target_label: __address__
+        replacement: $1:9323
+      # Set hostname as instance label
+      - source_labels: [__meta_dockerswarm_node_hostname]
+        target_label: instance
+
+  # fetch node-exporter metrics by DNS
+  - job_name: 'nodeexporter'
+    dns_sd_configs:
+    - names:
+      - 'tasks.nodeexporter'
+      type: 'A'
+      port: 9100
+
+  # fetch cadvisor metrics by DNS
+  - job_name: 'cadvisor'
+    dns_sd_configs:
+    - names:
+      - 'tasks.cadvisor'
+      type: 'A'
+      port: 8080
+
+  # fetch blackbox metrics by DNS
+  - job_name: 'blackbox'
+    scrape_interval: 1m
+    metrics_path: /probe
+    params:
+      module: [http_2xx, https_2xx]  # Look for a HTTP 200 response.
+    static_configs:
+      - targets:
+        - https://google.com   # Target to probe with https.
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox:9115  # The blackbox exporter's real hostname:port.

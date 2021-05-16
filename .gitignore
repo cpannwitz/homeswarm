@@ -1,5 +1,5 @@
 .env
 !.env.*
 
-configs/**/*
-!configs/example*
+# Secret configs
+ddclient.conf

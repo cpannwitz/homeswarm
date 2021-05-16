@@ -5,7 +5,7 @@ volumes:
 
 configs:
   ddclientconfig:
-    file: ./configs/ddclient.conf
+    file: ./configs/ddclient/ddclient.conf
 
 services:
   ddclient:
@@ -13,7 +13,6 @@ services:
     volumes:
       - ddclient-store:/config
     environment:
-      TZ: ${TZ?ENVVAR TZ not set}
       PUID: ${PUID?ENVVAR PUID not set}
       PGID: ${PGID?ENVVAR PGID not set}
     configs:

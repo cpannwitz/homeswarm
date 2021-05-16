@@ -1,0 +1,26 @@
+version: '3.8'
+
+networks:
+  socketproxy:
+    external: true
+
+services:
+  socketproxy:
+      image: tecnativa/docker-socket-proxy
+      ports:
+        - 2375
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      environment:
+        NODES: 1
+        SERVICES: 1
+        TASKS: 1
+        NETWORKS: 1
+        SWARM: 1
+      networks:
+        - socketproxy
+      deploy:
+        mode: global
+        # placement:
+        #   constraints:
+        #     - node.role == manager

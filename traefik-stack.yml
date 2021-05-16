@@ -22,8 +22,6 @@ services:
       - traefik-storage:/certificates
     networks:
       - traefik-public
-    environment:
-      - TZ=${TZ?ENVVAR TZ not set}
     command:
       # Enable API + dashboard
       - --api.dashboard=true

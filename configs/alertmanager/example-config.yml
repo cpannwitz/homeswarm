@@ -1,0 +1,15 @@
+global:
+  # The smarthost and SMTP sender used for mail notifications.
+  smtp_smarthost: 'localhost:25'
+  smtp_from: 'alertmanager@DOMAIN.org'
+  smtp_auth_username: 'alertmanager'
+  smtp_auth_password: 'password'
+
+route:
+    receiver: 'email'
+
+receivers:
+    - name: 'email'
+      email_configs:
+          - send_resolved: true
+            to: 'admin@DOMAIN.com'
